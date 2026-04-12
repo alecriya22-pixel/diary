@@ -8,7 +8,7 @@ import os
 # ======================
 # PAGE CONFIG
 # ======================
-st.set_page_config(page_title="Diary Space", page_icon="🌙")
+st.set_page_config(page_title="Diary Space,where junior releases his anger", page_icon="🌙")
 
 # ======================
 # DATABASE (CLOUD SAFE)
