@@ -57,7 +57,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
 
 # ======================
@@ -68,7 +67,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # ======================
-# AUTH
+# SESSION STATE
 # ======================
 if "user" not in st.session_state:
     st.session_state.user = None
@@ -76,6 +75,9 @@ if "user" not in st.session_state:
 if "private_locked" not in st.session_state:
     st.session_state.private_locked = True
 
+# ======================
+# AUTH
+# ======================
 
 def register_user(username, password):
     try:
@@ -95,23 +97,22 @@ def login_user(username, password):
     conn = get_conn()
     c = conn.cursor()
 
-    c.execute(
-        "SELECT * FROM users WHERE username=? AND password=?",
-        (username, hash_password(password))
-    )
+    c.execute("SELECT * FROM users WHERE username=? AND password=?",
+              (username, hash_password(password)))
 
     user = c.fetchone()
     conn.close()
     return user
 
 # ======================
-# PRIVATE LOCK FUNCTIONS
+# PRIVATE LOCK
 # ======================
 
 def set_private_pin(user, pin):
     conn = get_conn()
     c = conn.cursor()
-    c.execute("REPLACE INTO user_security VALUES (?, ?)", (user, hash_password(pin)))
+    c.execute("REPLACE INTO user_security VALUES (?, ?)",
+              (user, hash_password(pin)))
     conn.commit()
     conn.close()
 
@@ -129,7 +130,7 @@ def check_private_pin(user, pin):
     return data[0] == hash_password(pin)
 
 # ======================
-# LOGIN PAGE
+# LOGIN
 # ======================
 if not st.session_state.user:
     st.title("🔒 Diary Space Login")
@@ -181,10 +182,8 @@ def add_entry(user, text, entry_type):
             init_db()
             c = conn.cursor()
 
-            c.execute(
-                "INSERT INTO diary (username, text, time, type) VALUES (?, ?, ?, ?)",
-                (user, text, datetime.now().isoformat(), entry_type)
-            )
+            c.execute("INSERT INTO diary (username, text, time, type) VALUES (?, ?, ?, ?)",
+                      (user, text, datetime.now().isoformat(), entry_type))
 
             conn.commit()
             conn.close()
@@ -200,10 +199,8 @@ def get_entries(user, entry_type):
             init_db()
             c = conn.cursor()
 
-            c.execute(
-                "SELECT id, text, time FROM diary WHERE username=? AND type=? ORDER BY id DESC",
-                (user, entry_type)
-            )
+            c.execute("SELECT id, text, time FROM diary WHERE username=? AND type=? ORDER BY id DESC",
+                      (user, entry_type))
 
             data = c.fetchall()
             conn.close()
@@ -254,6 +251,9 @@ def detect_emotion(text):
 
     return max(score, key=score.get)
 
+# ======================
+# SUMMARY
+# ======================
 
 def weekly_summary(user):
     try:
@@ -295,7 +295,7 @@ def weekly_summary(user):
         return "No data yet."
 
 # ======================
-# UI INPUT
+# UI
 # ======================
 mode = st.selectbox(
     "Mode:",
@@ -304,22 +304,22 @@ mode = st.selectbox(
 
 entry = st.text_area("Write here...", placeholder="What's on your mind?")
 
-# set private pin
+# PIN system
 st.subheader("🔐 Private Lock")
-if st.button("Set / Change Private PIN"):
-    pin = st.text_input("Enter new PIN", type="password")
+if st.button("Set / Change PIN"):
+    pin = st.text_input("New PIN", type="password")
     if pin:
         set_private_pin(user, pin)
-        st.success("Private PIN saved!")
+        st.success("PIN set")
 
-# unlock private
-if mode.startswith("🔐"):
+# PRIVATE IS FULLY SEPARATED (NOT MIXED WITH OTHER SECTIONS)
+if mode == "🔐 Private":
     if st.session_state.private_locked:
-        pin_input = st.text_input("Enter PIN to unlock", type="password")
+        pin_input = st.text_input("Enter PIN", type="password")
         if st.button("Unlock"):
             if check_private_pin(user, pin_input):
                 st.session_state.private_locked = False
-                st.success("Unlocked!")
+                st.success("Unlocked")
                 st.rerun()
             else:
                 st.error("Wrong PIN")
@@ -327,32 +327,24 @@ if mode.startswith("🔐"):
 
 if st.button("Save ✨"):
     if entry.strip():
-        if mode.startswith("💔"):
+        if mode == "💔 Unsent":
             add_entry(user, entry, "unsent")
-        elif mode.startswith("💫"):
+        elif mode == "💫 Showcase":
             add_entry(user, entry, "showcase")
-        elif mode.startswith("🔐"):
+        elif mode == "🔐 Private":
             add_entry(user, entry, "private")
         else:
             add_entry(user, entry, "diary")
-
         st.rerun()
 
 st.divider()
 
 # ======================
-# SUMMARY
-# ======================
-st.subheader("🧠 Weekly Summary")
-st.info(weekly_summary(user))
-
-# ======================
-# DISPLAY
+# DISPLAY (STRICT SEPARATION)
 # ======================
 
 def show(title, entries, tag):
     st.subheader(title)
-
     for eid, text, time_val in entries:
         st.markdown(f"""
         <div style='background:#151522;padding:15px;border-radius:12px;margin-bottom:10px;'>
@@ -362,18 +354,16 @@ def show(title, entries, tag):
         """, unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
-
         with col1:
             if st.button("🗑 Delete", key=f"del_{tag}_{eid}"):
                 delete_entry(eid)
                 st.rerun()
-
         with col2:
             if st.button("✏️ Edit", key=f"edit_{tag}_{eid}"):
                 st.session_state.edit_id = eid
                 st.session_state.edit_text = text
 
-
+# FETCH SEPARATELY (NO MIXING)
 diary = get_entries(user, "diary")
 unsent = get_entries(user, "unsent")
 showcase = get_entries(user, "showcase")
@@ -383,18 +373,19 @@ show("📖 Diary", diary, "D")
 show("💔 Unsent", unsent, "U")
 show("💫 Showcase", showcase, "S")
 
-st.subheader("🔐 Private Corner")
-with st.expander("Hidden Entries 🔒"):
-    show("Private Notes", private, "P")
+st.subheader("🔐 Private Corner (Locked Separate Section)")
+with st.expander("Open Private Notes 🔒"):
+    if not st.session_state.private_locked:
+        show("Private Notes", private, "P")
+    else:
+        st.info("Locked. Enter PIN above to view.")
 
 # ======================
 # EDIT
 # ======================
 if "edit_id" in st.session_state:
     st.subheader("✏️ Edit")
-
     new = st.text_area("Update", st.session_state.edit_text)
-
     if st.button("Update"):
         update_entry(st.session_state.edit_id, new)
         del st.session_state.edit_id
