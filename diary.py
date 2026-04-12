@@ -8,14 +8,13 @@ import os
 # ======================
 # PAGE CONFIG
 # ======================
-st.set_page_config(page_title="Diary Space,where junior releases his anger", page_icon="🌙")
+st.set_page_config(page_title="Diary Space", page_icon="🌙")
 
 # ======================
 # DATABASE (CLOUD SAFE)
 # ======================
 DB_PATH = "/tmp/diary.db"
 
-# Ensure DB file exists
 if not os.path.exists(DB_PATH):
     open(DB_PATH, "w").close()
 
@@ -48,6 +47,13 @@ def init_db():
     )
     """)
 
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS user_security (
+        username TEXT PRIMARY KEY,
+        private_pin TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -66,6 +72,9 @@ def hash_password(password):
 # ======================
 if "user" not in st.session_state:
     st.session_state.user = None
+
+if "private_locked" not in st.session_state:
+    st.session_state.private_locked = True
 
 
 def register_user(username, password):
@@ -94,6 +103,30 @@ def login_user(username, password):
     user = c.fetchone()
     conn.close()
     return user
+
+# ======================
+# PRIVATE LOCK FUNCTIONS
+# ======================
+
+def set_private_pin(user, pin):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("REPLACE INTO user_security VALUES (?, ?)", (user, hash_password(pin)))
+    conn.commit()
+    conn.close()
+
+
+def check_private_pin(user, pin):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT private_pin FROM user_security WHERE username=?", (user,))
+    data = c.fetchone()
+    conn.close()
+
+    if not data:
+        return False
+
+    return data[0] == hash_password(pin)
 
 # ======================
 # LOGIN PAGE
@@ -134,6 +167,7 @@ st.title(f"🌙 {user}'s Diary Space")
 
 if st.button("Logout"):
     st.session_state.user = None
+    st.session_state.private_locked = True
     st.rerun()
 
 # ======================
@@ -265,10 +299,31 @@ def weekly_summary(user):
 # ======================
 mode = st.selectbox(
     "Mode:",
-    ["📖 Diary", "💔 Unsent", "💫 Showcase"]
+    ["📖 Diary", "💔 Unsent", "💫 Showcase", "🔐 Private"]
 )
 
 entry = st.text_area("Write here...", placeholder="What's on your mind?")
+
+# set private pin
+st.subheader("🔐 Private Lock")
+if st.button("Set / Change Private PIN"):
+    pin = st.text_input("Enter new PIN", type="password")
+    if pin:
+        set_private_pin(user, pin)
+        st.success("Private PIN saved!")
+
+# unlock private
+if mode.startswith("🔐"):
+    if st.session_state.private_locked:
+        pin_input = st.text_input("Enter PIN to unlock", type="password")
+        if st.button("Unlock"):
+            if check_private_pin(user, pin_input):
+                st.session_state.private_locked = False
+                st.success("Unlocked!")
+                st.rerun()
+            else:
+                st.error("Wrong PIN")
+        st.stop()
 
 if st.button("Save ✨"):
     if entry.strip():
@@ -276,6 +331,8 @@ if st.button("Save ✨"):
             add_entry(user, entry, "unsent")
         elif mode.startswith("💫"):
             add_entry(user, entry, "showcase")
+        elif mode.startswith("🔐"):
+            add_entry(user, entry, "private")
         else:
             add_entry(user, entry, "diary")
 
@@ -320,10 +377,15 @@ def show(title, entries, tag):
 diary = get_entries(user, "diary")
 unsent = get_entries(user, "unsent")
 showcase = get_entries(user, "showcase")
+private = get_entries(user, "private")
 
 show("📖 Diary", diary, "D")
 show("💔 Unsent", unsent, "U")
 show("💫 Showcase", showcase, "S")
+
+st.subheader("🔐 Private Corner")
+with st.expander("Hidden Entries 🔒"):
+    show("Private Notes", private, "P")
 
 # ======================
 # EDIT
