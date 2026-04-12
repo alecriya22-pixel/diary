@@ -8,100 +8,108 @@ from datetime import datetime
 st.set_page_config(page_title="Diary Space", page_icon="🌙")
 
 # ======================
-# DARK AESTHETIC + HANDWRITING THEME
+# DB CONNECTION (STABLE)
 # ======================
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Caveat:wght@400;600&display=swap');
+@st.cache_resource
+def get_db():
+    conn = sqlite3.connect("diary.db", check_same_thread=False)
+    c = conn.cursor()
 
-.stApp {
-    background-color: #0b0b10;
-    color: #e6e6e6;
-}
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT
+    )
+    """)
 
-/* Titles */
-h1, h2, h3 {
-    color: #c9a7ff;
-    font-family: 'Caveat', cursive;
-}
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS diary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        text TEXT,
+        time TEXT,
+        type TEXT
+    )
+    """)
 
-/* Text input */
-.stTextArea textarea {
-    font-family: 'Indie Flower', cursive !important;
-    font-size: 18px !important;
-    background-color: #151522 !important;
-    color: #ffffff !important;
-    border-radius: 12px !important;
-    border: 1px solid #2c2c3a !important;
-}
+    conn.commit()
+    return conn, c
 
-/* Buttons */
-.stButton button {
-    background-color: #7c5cff;
-    color: white;
-    border-radius: 10px;
-    border: none;
-}
-
-.stButton button:hover {
-    background-color: #9a7bff;
-}
-
-/* Text display */
-.stMarkdown {
-    font-family: 'Caveat', cursive;
-    font-size: 20px;
-}
-</style>
-""", unsafe_allow_html=True)
+conn, c = get_db()
 
 # ======================
-# PASSWORD LOCK
+# AUTH SYSTEM (REAL USERS)
 # ======================
-PASSWORD = "1234"  # change this
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-if "auth" not in st.session_state:
-    st.session_state.auth = False
+def register_user(username, password):
+    try:
+        c.execute("INSERT INTO users VALUES (?, ?)", (username, password))
+        conn.commit()
+        return True
+    except:
+        return False
 
-if not st.session_state.auth:
-    st.title("🔒 Locked Diary Space")
-    pw = st.text_input("Enter Password", type="password")
+def login_user(username, password):
+    user = c.execute(
+        "SELECT * FROM users WHERE username=? AND password=?",
+        (username, password)
+    ).fetchone()
+    return user
 
-    if st.button("Unlock"):
-        if pw == PASSWORD:
-            st.session_state.auth = True
-            st.rerun()
-        else:
-            st.error("Wrong password")
+# ======================
+# LOGIN UI
+# ======================
+if not st.session_state.user:
+    st.title("🔒 Diary Space Login")
+
+    tab1, tab2 = st.tabs(["Login", "Register"])
+
+    with tab1:
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
+
+        if st.button("Login"):
+            if login_user(u, p):
+                st.session_state.user = u
+                st.rerun()
+            else:
+                st.error("Invalid login")
+
+    with tab2:
+        ru = st.text_input("New Username")
+        rp = st.text_input("New Password", type="password")
+
+        if st.button("Register"):
+            if register_user(ru, rp):
+                st.success("Account created! Now login.")
+            else:
+                st.error("Username already exists")
+
     st.stop()
 
 # ======================
-# DATABASE (SQLite)
+# USER DASHBOARD
 # ======================
-conn = sqlite3.connect("diary.db", check_same_thread=False)
-c = conn.cursor()
+user = st.session_state.user
 
-c.execute("""
-CREATE TABLE IF NOT EXISTS diary (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    text TEXT,
-    time TEXT,
-    type TEXT
-)
-""")
-conn.commit()
+st.title(f"🌙 {user}'s Diary Space")
 
-def add_entry(text, entry_type="diary"):
+# ======================
+# FUNCTIONS
+# ======================
+def add_entry(text, entry_type):
     c.execute(
-        "INSERT INTO diary (text, time, type) VALUES (?, ?, ?)",
-        (text, str(datetime.now()), entry_type)
+        "INSERT INTO diary (username, text, time, type) VALUES (?, ?, ?, ?)",
+        (user, text, str(datetime.now()), entry_type)
     )
     conn.commit()
 
 def get_entries(entry_type):
     return c.execute(
-        "SELECT id, text, time FROM diary WHERE type=? ORDER BY id DESC",
-        (entry_type,)
+        "SELECT id, text, time FROM diary WHERE username=? AND type=? ORDER BY id DESC",
+        (user, entry_type)
     ).fetchall()
 
 def delete_entry(entry_id):
@@ -113,13 +121,27 @@ def update_entry(entry_id, new_text):
     conn.commit()
 
 # ======================
-# UI
+# SIMPLE AI SUMMARY (NO API)
 # ======================
-st.title("🌙 My Diary Space")
+def simple_summary(entries):
+    if not entries:
+        return "No entries yet."
 
-mode = st.selectbox("Choose mode:", ["📖 Diary", "💔 Unsent Message (Closure Mode)"])
+    total_words = sum(len(e[1].split()) for e in entries)
 
-entry = st.text_area("Write your thoughts...")
+    if total_words < 50:
+        return "You’ve been quiet lately. Reflecting or just starting out."
+    elif total_words < 200:
+        return "You’ve been journaling steadily. Mixed thoughts and reflections."
+    else:
+        return "You’ve been very expressive. A lot of emotions and thoughts recorded."
+
+# ======================
+# UI INPUT
+# ======================
+mode = st.selectbox("Mode:", ["📖 Diary", "💔 Unsent Messages"])
+
+entry = st.text_area("Write here...")
 
 if st.button("Save ✨"):
     if entry.strip():
@@ -133,11 +155,32 @@ if st.button("Save ✨"):
 st.divider()
 
 # ======================
-# DIARY ENTRIES
+# LOAD DATA
+# ======================
+diary_entries = get_entries("diary")
+unsent_entries = get_entries("unsent")
+
+# ======================
+# SUMMARY DASHBOARD
+# ======================
+st.subheader("🧠 Your Mood Summary")
+
+st.info(simple_summary(diary_entries + unsent_entries))
+
+# ======================
+# CALENDAR VIEW (SIMPLE)
+# ======================
+st.subheader("📅 Recent Activity Dates")
+
+dates = [e[2][:10] for e in diary_entries + unsent_entries]
+unique_dates = sorted(list(set(dates)), reverse=True)
+
+st.write(unique_dates[:10])
+
+# ======================
+# DISPLAY ENTRIES
 # ======================
 st.subheader("📖 Diary Entries")
-
-diary_entries = get_entries("diary")
 
 for entry_id, text, time in diary_entries:
     st.markdown(f"**{time}**")
@@ -146,23 +189,18 @@ for entry_id, text, time in diary_entries:
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button(f"🗑 Delete {entry_id} (D)"):
+        if st.button(f"🗑 Delete D{entry_id}"):
             delete_entry(entry_id)
             st.rerun()
 
     with col2:
-        if st.button(f"✏️ Edit {entry_id} (D)"):
+        if st.button(f"✏️ Edit D{entry_id}"):
             st.session_state.edit_id = entry_id
             st.session_state.edit_text = text
 
     st.markdown("---")
 
-# ======================
-# UNSENT MESSAGES (CLOSURE MODE)
-# ======================
-st.subheader("💔 Unsent Messages (Closure Mode)")
-
-unsent_entries = get_entries("unsent")
+st.subheader("💔 Unsent Messages")
 
 for entry_id, text, time in unsent_entries:
     st.markdown(f"**{time}**")
@@ -171,12 +209,12 @@ for entry_id, text, time in unsent_entries:
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button(f"🗑 Delete {entry_id} (U)"):
+        if st.button(f"🗑 Delete U{entry_id}"):
             delete_entry(entry_id)
             st.rerun()
 
     with col2:
-        if st.button(f"✏️ Edit {entry_id} (U)"):
+        if st.button(f"✏️ Edit U{entry_id}"):
             st.session_state.edit_id = entry_id
             st.session_state.edit_text = text
 
@@ -188,7 +226,7 @@ for entry_id, text, time in unsent_entries:
 if "edit_id" in st.session_state:
     st.subheader("✏️ Edit Entry")
 
-    new_text = st.text_area("Update your entry", st.session_state.edit_text)
+    new_text = st.text_area("Update entry", st.session_state.edit_text)
 
     if st.button("Update"):
         update_entry(st.session_state.edit_id, new_text)
@@ -196,3 +234,4 @@ if "edit_id" in st.session_state:
         del st.session_state.edit_text
         st.success("Updated!")
         st.rerun()
+    
