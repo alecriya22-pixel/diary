@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime
+import time
 
 # ======================
 # PAGE CONFIG
@@ -8,7 +9,44 @@ from datetime import datetime
 st.set_page_config(page_title="Diary Space", page_icon="🌙")
 
 # ======================
-# DARK + HANDWRITING THEME
+# DB CONFIG (CRASH-PROOF)
+# ======================
+DB_PATH = "diary.db"
+
+def get_conn():
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=3000")
+    return conn
+
+def init_db():
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT
+    )
+    """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS diary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        text TEXT,
+        time TEXT,
+        type TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# ======================
+# STYLES (DARK AESTHETIC)
 # ======================
 st.markdown("""
 <style>
@@ -46,40 +84,6 @@ h1, h2, h3 {
 """, unsafe_allow_html=True)
 
 # ======================
-# DATABASE (CRASH-PROOF)
-# ======================
-DB_PATH = "diary.db"
-
-def get_conn():
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
-
-def init_db():
-    conn = get_conn()
-    c = conn.cursor()
-
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        username TEXT PRIMARY KEY,
-        password TEXT
-    )
-    """)
-
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS diary (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
-        text TEXT,
-        time TEXT,
-        type TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# ======================
 # AUTH SYSTEM
 # ======================
 if "user" not in st.session_state:
@@ -88,6 +92,7 @@ if "user" not in st.session_state:
 def register_user(username, password):
     conn = get_conn()
     c = conn.cursor()
+
     try:
         c.execute("INSERT INTO users VALUES (?, ?)", (username, password))
         conn.commit()
@@ -105,6 +110,7 @@ def login_user(username, password):
         "SELECT * FROM users WHERE username=? AND password=?",
         (username, password)
     )
+
     user = c.fetchone()
     conn.close()
     return user
@@ -144,55 +150,79 @@ if not st.session_state.user:
 # USER
 # ======================
 user = st.session_state.user
-
 st.title(f"🌙 {user}'s Diary Space")
 
 # ======================
-# DB FUNCTIONS
+# SAFE DB FUNCTIONS (WITH RETRY)
 # ======================
 def add_entry(user, text, entry_type):
-    conn = get_conn()
-    c = conn.cursor()
+    for _ in range(3):
+        try:
+            conn = get_conn()
+            c = conn.cursor()
 
-    c.execute(
-        "INSERT INTO diary (username, text, time, type) VALUES (?, ?, ?, ?)",
-        (user, text, str(datetime.now()), entry_type)
-    )
+            c.execute(
+                "INSERT INTO diary (username, text, time, type) VALUES (?, ?, ?, ?)",
+                (user, text, str(datetime.now()), entry_type)
+            )
 
-    conn.commit()
-    conn.close()
+            conn.commit()
+            conn.close()
+            return
+
+        except sqlite3.OperationalError:
+            time.sleep(0.2)
 
 def get_entries(user, entry_type):
-    conn = get_conn()
-    c = conn.cursor()
+    for _ in range(3):
+        try:
+            conn = get_conn()
+            c = conn.cursor()
 
-    c.execute(
-        "SELECT id, text, time FROM diary WHERE username=? AND type=? ORDER BY id DESC",
-        (user, entry_type)
-    )
+            c.execute(
+                "SELECT id, text, time FROM diary WHERE username=? AND type=? ORDER BY id DESC",
+                (user, entry_type)
+            )
 
-    data = c.fetchall()
-    conn.close()
-    return data
+            data = c.fetchall()
+            conn.close()
+            return data
+
+        except sqlite3.OperationalError:
+            time.sleep(0.2)
+
+    return []
 
 def delete_entry(entry_id):
-    conn = get_conn()
-    c = conn.cursor()
+    for _ in range(3):
+        try:
+            conn = get_conn()
+            c = conn.cursor()
 
-    c.execute("DELETE FROM diary WHERE id=?", (entry_id,))
-    conn.commit()
-    conn.close()
+            c.execute("DELETE FROM diary WHERE id=?", (entry_id,))
+            conn.commit()
+            conn.close()
+            return
+
+        except sqlite3.OperationalError:
+            time.sleep(0.2)
 
 def update_entry(entry_id, new_text):
-    conn = get_conn()
-    c = conn.cursor()
+    for _ in range(3):
+        try:
+            conn = get_conn()
+            c = conn.cursor()
 
-    c.execute("UPDATE diary SET text=? WHERE id=?", (new_text, entry_id))
-    conn.commit()
-    conn.close()
+            c.execute("UPDATE diary SET text=? WHERE id=?", (new_text, entry_id))
+            conn.commit()
+            conn.close()
+            return
+
+        except sqlite3.OperationalError:
+            time.sleep(0.2)
 
 # ======================
-# UI INPUT
+# INPUT UI
 # ======================
 mode = st.selectbox(
     "Mode:",
@@ -248,14 +278,14 @@ def show_entries(title, entries, tag):
                 st.session_state.edit_text = text
 
 # ======================
-# LOAD ENTRIES
+# LOAD DATA
 # ======================
 diary_entries = get_entries(user, "diary")
 unsent_entries = get_entries(user, "unsent")
 showcase_entries = get_entries(user, "showcase")
 
 # ======================
-# SHOW ALL SECTIONS
+# SHOW SECTIONS
 # ======================
 show_entries("📖 Diary Entries", diary_entries, "D")
 show_entries("💔 Unsent Messages", unsent_entries, "U")
