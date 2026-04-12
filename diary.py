@@ -1,6 +1,6 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 # ======================
@@ -9,7 +9,7 @@ import time
 st.set_page_config(page_title="Diary Space", page_icon="🌙")
 
 # ======================
-# DB CONFIG (CRASH-PROOF)
+# DATABASE (CRASH-PROOF)
 # ======================
 DB_PATH = "diary.db"
 
@@ -46,7 +46,7 @@ def init_db():
 init_db()
 
 # ======================
-# STYLES (DARK AESTHETIC)
+# STYLES
 # ======================
 st.markdown("""
 <style>
@@ -80,11 +80,19 @@ h1, h2, h3 {
 .stButton button:hover {
     background-color: #9a7bff;
 }
+
+.card {
+    background:#151522;
+    padding:15px;
+    border-radius:12px;
+    border:1px solid #2c2c3a;
+    margin-bottom:10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ======================
-# AUTH SYSTEM
+# AUTH
 # ======================
 if "user" not in st.session_state:
     st.session_state.user = None
@@ -92,7 +100,6 @@ if "user" not in st.session_state:
 def register_user(username, password):
     conn = get_conn()
     c = conn.cursor()
-
     try:
         c.execute("INSERT INTO users VALUES (?, ?)", (username, password))
         conn.commit()
@@ -142,7 +149,7 @@ if not st.session_state.user:
             if register_user(ru, rp):
                 st.success("Account created!")
             else:
-                st.error("Username already exists")
+                st.error("Username exists")
 
     st.stop()
 
@@ -153,7 +160,7 @@ user = st.session_state.user
 st.title(f"🌙 {user}'s Diary Space")
 
 # ======================
-# SAFE DB FUNCTIONS (WITH RETRY)
+# DB FUNCTIONS (SAFE + RETRY)
 # ======================
 def add_entry(user, text, entry_type):
     for _ in range(3):
@@ -169,7 +176,6 @@ def add_entry(user, text, entry_type):
             conn.commit()
             conn.close()
             return
-
         except sqlite3.OperationalError:
             time.sleep(0.2)
 
@@ -187,46 +193,100 @@ def get_entries(user, entry_type):
             data = c.fetchall()
             conn.close()
             return data
-
         except sqlite3.OperationalError:
             time.sleep(0.2)
 
     return []
 
 def delete_entry(entry_id):
-    for _ in range(3):
-        try:
-            conn = get_conn()
-            c = conn.cursor()
-
-            c.execute("DELETE FROM diary WHERE id=?", (entry_id,))
-            conn.commit()
-            conn.close()
-            return
-
-        except sqlite3.OperationalError:
-            time.sleep(0.2)
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("DELETE FROM diary WHERE id=?", (entry_id,))
+    conn.commit()
+    conn.close()
 
 def update_entry(entry_id, new_text):
-    for _ in range(3):
-        try:
-            conn = get_conn()
-            c = conn.cursor()
-
-            c.execute("UPDATE diary SET text=? WHERE id=?", (new_text, entry_id))
-            conn.commit()
-            conn.close()
-            return
-
-        except sqlite3.OperationalError:
-            time.sleep(0.2)
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE diary SET text=? WHERE id=?", (new_text, entry_id))
+    conn.commit()
+    conn.close()
 
 # ======================
-# INPUT UI
+# EMOTION + SUMMARY
+# ======================
+def detect_emotion(text):
+    text = text.lower()
+
+    happy = ["happy", "good", "great", "love", "excited", "calm"]
+    sad = ["sad", "hurt", "lonely", "miss", "bad"]
+    stress = ["stress", "anxious", "overthink", "worried"]
+
+    score = {"happy":0, "sad":0, "stress":0}
+
+    for w in happy:
+        if w in text: score["happy"] += 1
+    for w in sad:
+        if w in text: score["sad"] += 1
+    for w in stress:
+        if w in text: score["stress"] += 1
+
+    if max(score.values()) == 0:
+        return "neutral"
+
+    return max(score, key=score.get)
+
+def weekly_summary(user):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("SELECT text, time FROM diary WHERE username=?", (user,))
+    data = c.fetchall()
+    conn.close()
+
+    week_ago = datetime.now() - timedelta(days=7)
+
+    emotions = {"happy":0, "sad":0, "stress":0, "neutral":0}
+
+    for text, time_str in data:
+        try:
+            t = datetime.strptime(time_str.split(".")[0], "%Y-%m-%d %H:%M:%S")
+            if t >= week_ago:
+                emo = detect_emotion(text)
+                emotions[emo] += 1
+        except:
+            pass
+
+    dominant = max(emotions, key=emotions.get)
+
+    return f"""
+📊 Weekly Emotional Summary
+
+😊 Happy: {emotions['happy']}
+😔 Sad: {emotions['sad']}
+😰 Stress: {emotions['stress']}
+⚪ Neutral: {emotions['neutral']}
+
+🧠 Overall: {dominant.upper()}
+"""
+
+# ======================
+# CALENDAR
+# ======================
+def get_dates(user):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT time FROM diary WHERE username=?", (user,))
+    data = c.fetchall()
+    conn.close()
+    return data
+
+# ======================
+# UI INPUT
 # ======================
 mode = st.selectbox(
     "Mode:",
-    ["📖 Diary", "💔 Unsent Messages", "💫 Showcase Mode"]
+    ["📖 Diary", "💔 Unsent", "💫 Showcase"]
 )
 
 entry = st.text_area("Write here...")
@@ -240,68 +300,65 @@ if st.button("Save ✨"):
         else:
             add_entry(user, entry, "diary")
 
-        st.success("Saved!")
         st.rerun()
 
 st.divider()
 
 # ======================
-# DISPLAY FUNCTION
+# SUMMARY + CALENDAR
 # ======================
-def show_entries(title, entries, tag):
+st.subheader("🧠 Weekly Summary")
+st.info(weekly_summary(user))
+
+st.subheader("📅 Calendar (Dates with entries)")
+
+dates = [d[0].split(" ")[0] for d in get_dates(user)]
+st.write(sorted(list(set(dates)), reverse=True)[:10])
+
+# ======================
+# DISPLAY
+# ======================
+def show(title, entries, tag):
     st.subheader(title)
 
-    for entry_id, text, time in entries:
+    for eid, text, time in entries:
         st.markdown(f"""
-        <div style="
-            background:#151522;
-            padding:15px;
-            border-radius:12px;
-            border:1px solid #2c2c3a;
-            margin-bottom:10px;
-        ">
-            <small style="color:#aaa">{time}</small><br><br>
-            {text}
+        <div class="card">
+        <small>{time}</small><br><br>
+        {text}
         </div>
         """, unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
 
         with col1:
-            if st.button(f"🗑 Delete {tag}{entry_id}"):
-                delete_entry(entry_id)
+            if st.button(f"🗑 {tag}{eid}"):
+                delete_entry(eid)
                 st.rerun()
 
         with col2:
-            if st.button(f"✏️ Edit {tag}{entry_id}"):
-                st.session_state.edit_id = entry_id
+            if st.button(f"✏️ {tag}{eid}"):
+                st.session_state.edit_id = eid
                 st.session_state.edit_text = text
 
-# ======================
-# LOAD DATA
-# ======================
-diary_entries = get_entries(user, "diary")
-unsent_entries = get_entries(user, "unsent")
-showcase_entries = get_entries(user, "showcase")
+diary = get_entries(user, "diary")
+unsent = get_entries(user, "unsent")
+showcase = get_entries(user, "showcase")
+
+show("📖 Diary", diary, "D")
+show("💔 Unsent", unsent, "U")
+show("💫 Showcase", showcase, "S")
 
 # ======================
-# SHOW SECTIONS
-# ======================
-show_entries("📖 Diary Entries", diary_entries, "D")
-show_entries("💔 Unsent Messages", unsent_entries, "U")
-show_entries("💫 Showcase Mode", showcase_entries, "S")
-
-# ======================
-# EDIT MODE
+# EDIT
 # ======================
 if "edit_id" in st.session_state:
-    st.subheader("✏️ Edit Entry")
+    st.subheader("✏️ Edit")
 
-    new_text = st.text_area("Update entry", st.session_state.edit_text)
+    new = st.text_area("Update", st.session_state.edit_text)
 
     if st.button("Update"):
-        update_entry(st.session_state.edit_id, new_text)
+        update_entry(st.session_state.edit_id, new)
         del st.session_state.edit_id
         del st.session_state.edit_text
-        st.success("Updated!")
         st.rerun()
