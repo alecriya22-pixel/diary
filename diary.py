@@ -1,83 +1,130 @@
 import streamlit as st
-from datetime import datetime
+from PIL import Image
+import base64
+import os
 
 st.set_page_config(
-    page_title="I'm Sorry ❤️",
-    page_icon="💔",
-    layout="centered"
+    page_title="For Mary ❤️",
+    page_icon="❤️",
+    layout="wide"
 )
 
-st.markdown("""
-<style>
-.stApp{
-    background:linear-gradient(135deg,#fff5f7,#ffe3ec);
-}
-.title{
-    text-align:center;
-    color:#ff4d6d;
-    font-size:55px;
-    font-weight:bold;
-}
-.message{
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 8px 20px rgba(0,0,0,.15);
-    font-size:20px;
-    line-height:1.8;
-}
-.stButton>button{
-    background:#ff4d6d;
-    color:white;
-    border-radius:30px;
-    padding:12px 25px;
-    border:none;
-    font-size:18px;
-}
-</style>
-""", unsafe_allow_html=True)
+# Load CSS
+if os.path.exists("style.css"):
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.markdown("<div class='title'>💔 I'm Sorry, Carizon ❤️</div>",
-unsafe_allow_html=True)
+# Background Music
+music_file = "music/stereo_hearts.mp3"
 
-st.write("")
+if os.path.exists(music_file):
+    with open(music_file, "rb") as f:
+        data = f.read()
 
-st.image("assets/photos/her1.jpg", use_container_width=True)
+    b64 = base64.b64encode(data).decode()
 
-st.markdown("""
-<div class='message'>
+    st.markdown(
+        f"""
+        <audio autoplay loop controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """,
+        unsafe_allow_html=True
+    )
 
-Dear Carizon,
+# Hero Section
+st.markdown(
+"""
+<div class="hero">
+<h1>❤️ Dear Mary ❤️</h1>
 
-I know I hurt you.
+<h2>You are my sunshine, my happiness, and my forever.</h2>
 
-I'm not making this website to erase what happened or to pretend everything is okay.
+<p>
+Every single day with you is a blessing.
+This little website is only a tiny reminder
+of how much I love you.
+</p>
+</div>
+""",
+unsafe_allow_html=True
+)
 
-I'm making it because you deserve a genuine apology.
+st.balloons()
 
-I'm sorry for my words, my actions, and the way I made you feel.
+# Love Letter
+st.header("💌 A Letter For You")
 
-You mean so much to me, and the last thing I ever wanted was to become the reason you were hurting.
+st.write("""
+Dear Mary,
 
-We've only just begun this journey together, and I don't want our first chapter to be remembered for a mistake.
+You make every ordinary day feel extraordinary.
 
-I can't promise to be perfect.
+Thank you for your love,
+your kindness,
+your smile,
+and for always believing in me.
 
-But I can promise to listen better, communicate better, and do better.
+You are my best friend,
+my peace,
+and my greatest blessing.
 
-Whether you forgive me today or need time, I'll respect that.
-
-Thank you for reading this.
+I love you today,
+tomorrow,
+and forever.
 
 ❤️
-Love,
-Carino
+""")
 
-</div>
-""", unsafe_allow_html=True)
+# Gallery
+st.header("📸 Our Beautiful Memories")
 
-st.write("")
+photos = [
+    "images/photo1.jpg",
+    "images/photo2.jpg",
+    "images/photo3.jpg",
+    "images/photo4.jpg"
+]
 
-if st.button("❤️ Can you forgive me?"):
-    st.balloons()
-    st.success("No matter what happens, thank you for giving me your time.")
+cols = st.columns(2)
+
+for i, photo in enumerate(photos):
+    if os.path.exists(photo):
+        cols[i % 2].image(photo, use_container_width=True)
+
+# Reasons
+st.header("❤️ Reasons I Love You")
+
+reasons = [
+    "Your smile 😊",
+    "Your beautiful heart ❤️",
+    "Your kindness",
+    "Your laughter",
+    "Your support",
+    "Your hugs",
+    "Your intelligence",
+    "Everything about you."
+]
+
+for reason in reasons:
+    st.success(reason)
+
+# Surprise
+st.header("🎁 Surprise")
+
+if st.button("Click Here ❤️"):
+    st.snow()
+
+    st.markdown(
+    """
+    ## ❤️ Happy Special Occasion ❤️
+
+    Mary,
+
+    Thank you for making my life beautiful.
+
+    I will always choose you.
+
+    **Forever Yours ❤️**
+    """
+    )
