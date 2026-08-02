@@ -221,64 +221,55 @@ st.markdown("---")
 # -----------------------------
 # Little Promise
 # -----------------------------
-st.header("🤍 A Small Promise")
-
-st.info("""
-
-No matter how busy life gets,
-
-I'll always try to make time for you.
-
-I'll always appreciate your kindness.
-
-And I'll never stop cheering you on
-to become everything you dream of becoming.
-
-""")
-
+# Digital Envelope
 # -----------------------------
-# Surprise
-# -----------------------------
-st.header("🎁 One Last Surprise")
+st.header("💌 One Last Surprise")
 
-if st.button("Click Here ❤️"):
+if "opened" not in st.session_state:
+    st.session_state.opened = False
+
+st.markdown("""
+<div class="envelope">
+    💌
+</div>
+""", unsafe_allow_html=True)
+
+if st.button("Open the Envelope ❤️"):
+
+    st.session_state.opened = True
+
+if st.session_state.opened:
 
     st.snow()
     st.balloons()
 
-    st.markdown(
-    """
-    <div class="surprise-card">
+    st.markdown("""
+<div class="surprise-card">
 
-    <h1>❤️ Dear Mary ❤️</h1>
+<h1>❤️ Dear Mary ❤️</h1>
 
-    <h3>
+<p>
 
-    Thank you.
+If you've reached this part of the website,
 
-    </h3>
+thank you for reading everything.
 
-    <p>
+I just wanted you to know that meeting you
+has genuinely made my days brighter.
 
-    Thank you for being part of my life.
+No matter how many miles separate us,
 
-    Thank you for every smile.
+I'll always appreciate the person you are.
 
-    Thank you for every conversation.
+I hope this is only the beginning
+of an amazing story.
 
-    Thank you for making ordinary days feel special.
+❤️
 
-    I hope this little website reminds you
-    that you are appreciated more than you know.
+</p>
 
-    ❤️
-
-    </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
+</div>
+""", unsafe_allow_html=True)
 
     st.success("💖 You make my world a little brighter every day.")
 
