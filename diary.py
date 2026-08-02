@@ -349,6 +349,7 @@ with col2:
     if st.button("Always ❤️"):
 
         st.balloons()
+        st. snow()
 
         st.success(
             "Forever starts with moments like this 💖"
