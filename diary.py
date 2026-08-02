@@ -219,8 +219,6 @@ Because every day brings us one step closer.
 st.markdown("---")
 
 # -----------------------------
-# Little Promise
-# -----------------------------
 # Digital Envelope
 # -----------------------------
 st.header("💌 One Last Surprise")
@@ -308,3 +306,56 @@ st.markdown("---")
 
 st.caption("Made with ❤️ especially for Mary.")
 st.markdown("---")
+# ==============================
+# THE BIG QUESTION
+# ==============================
+
+st.markdown("---")
+
+
+st.markdown("""
+<div class="proposal">
+
+<h1>❤️ Mary ❤️</h1>
+
+<h2>
+I have something important to ask you...
+</h2>
+
+<h1>
+Will you be mine? 💍
+</h1>
+
+<p>
+I promise to keep making you smile,
+support you,
+and treasure every moment we share.
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
+    if st.button("Yes ❤️"):
+
+        st.balloons()
+
+        st.success(
+            "You just made me the happiest person ❤️"
+        )
+
+
+with col2:
+
+    if st.button("Always ❤️"):
+
+        st.balloons()
+
+        st.success(
+            "Forever starts with moments like this 💖"
+        )
