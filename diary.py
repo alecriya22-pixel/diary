@@ -300,13 +300,6 @@ Here's to many more.
 unsafe_allow_html=True
 )
 
-# -----------------------------
-# Footer
-# -----------------------------
-st.markdown("---")
-
-st.caption("Made with ❤️ especially for Mary.")
-st.markdown("---")
 # ==============================
 # THE BIG QUESTION
 # ==============================
@@ -360,3 +353,10 @@ with col2:
         st.success(
             "Forever starts with moments like this 💖"
         )
+ # -----------------------------
+# Footer
+# -----------------------------
+st.markdown("---")
+
+st.caption("Made with ❤️ especially for Mary.")
+st.markdown("---")       
