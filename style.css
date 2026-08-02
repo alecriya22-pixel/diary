@@ -1,24 +1,34 @@
 /* ===========================================
    Google Font
 =========================================== */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
+
 /* ===========================================
-   Background
+   Main Dark Background
 =========================================== */
 
 html, body, [data-testid="stAppViewContainer"]{
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(
+
+    font-family:'Poppins', sans-serif;
+
+    background:linear-gradient(
         -45deg,
-        #fff0f6,
-        #ffe4ec,
-        #ffeaf4,
-        #fff8fb
+        #050505,
+        #111827,
+        #1b1535,
+        #090909
     );
-    background-size: 400% 400%;
-    animation: gradientMove 15s ease infinite;
+
+    background-size:400% 400%;
+
+    animation:gradientMove 15s ease infinite;
+
+    color:white;
+
 }
+
 
 @keyframes gradientMove{
 
@@ -36,9 +46,63 @@ html, body, [data-testid="stAppViewContainer"]{
 
 }
 
+
 /* ===========================================
-   Hero
+   Star Background
 =========================================== */
+
+.stApp::before{
+
+    content:"";
+
+    position:fixed;
+
+    inset:0;
+
+    background-image:
+        radial-gradient(white 1px, transparent 1px),
+        radial-gradient(#ff8ac2 1px, transparent 1px);
+
+    background-size:
+        80px 80px,
+        140px 140px;
+
+    opacity:.18;
+
+    pointer-events:none;
+
+    z-index:-1;
+
+}
+
+
+/* ===========================================
+   General Text
+=========================================== */
+
+p{
+
+    color:#eeeeee;
+
+    line-height:1.8;
+
+    font-size:18px;
+
+}
+
+
+h1,h2,h3{
+
+    color:#ff4d94;
+
+}
+
+
+
+/* ===========================================
+   Hero Section
+=========================================== */
+
 
 .hero{
 
@@ -50,23 +114,30 @@ html, body, [data-testid="stAppViewContainer"]{
 
 }
 
+
+
 .hero h1{
 
     color:#ff2e79;
 
     font-size:60px;
 
-    margin-bottom:15px;
+    text-shadow:
+    0 0 15px rgba(255,46,121,.8);
 
 }
 
+
+
 .hero h3{
 
-    color:#555;
+    color:#dddddd;
 
     font-weight:500;
 
 }
+
+
 
 .hero p{
 
@@ -74,81 +145,106 @@ html, body, [data-testid="stAppViewContainer"]{
 
     margin:auto;
 
-    color:#666;
+    color:#eeeeee;
 
     font-size:18px;
 
-    line-height:1.8;
-
 }
 
+
 /* ===========================================
-   Pulsing Heart
+   Glowing Heart
 =========================================== */
+
 
 .pulse-heart{
 
-    font-size:65px;
+    font-size:90px;
 
     margin-top:30px;
 
-    animation:pulse 1.5s infinite;
+    animation:pulse 1.4s infinite;
+
+    filter:
+    drop-shadow(0 0 15px #ff2e79);
 
 }
+
+
 
 @keyframes pulse{
 
-0%{
-transform:scale(1);
+
+    0%{
+
+        transform:scale(1);
+
+    }
+
+
+    50%{
+
+        transform:scale(1.25);
+
+    }
+
+
+    100%{
+
+        transform:scale(1);
+
+    }
+
 }
 
-50%{
-transform:scale(1.25);
-}
-
-100%{
-transform:scale(1);
-}
-
-}
 
 /* ===========================================
-   Glass Cards
+   Glassmorphism Cards
 =========================================== */
+
 
 div[data-testid="stVerticalBlock"]{
 
-    background:rgba(255,255,255,.60);
 
-    backdrop-filter:blur(15px);
+    background:
+    rgba(20,20,30,.45);
+
+
+    backdrop-filter:
+    blur(15px);
+
+
+    -webkit-backdrop-filter:
+    blur(15px);
+
 
     border-radius:20px;
 
+
     padding:25px;
+
 
     margin-bottom:25px;
 
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
 
-}
+    border:
+    1px solid rgba(255,255,255,.08);
 
+
+    box-shadow:
+    0 0 30px rgba(255,0,100,.15);
 /* ===========================================
-   Headers
+   Buttons
 =========================================== */
 
-h1,h2,h3{
+.stButton > button{
 
-    color:#d63384;
-
-}
-
-/* ===========================================
-   Streamlit Buttons
-=========================================== */
-
-.stButton>button{
-
-    background:#ff4d94;
+    background:
+    linear-gradient(
+        45deg,
+        #ff2e79,
+        #ff6fa3
+    );
 
     color:white;
 
@@ -160,78 +256,79 @@ h1,h2,h3{
 
     font-size:18px;
 
-    transition:.3s;
+    font-weight:600;
+
+    transition:.3s ease;
 
 }
 
-.stButton>button:hover{
 
-    background:#ff2e79;
+.stButton > button:hover{
 
     transform:scale(1.05);
 
+    box-shadow:
+    0 0 25px #ff2e79;
+
+    background:#ff2e79;
+
 }
+
+
 
 /* ===========================================
    Quote Card
 =========================================== */
 
+
 .quote-box{
 
     text-align:center;
 
-    padding:25px;
+    padding:30px;
 
-    background:rgba(255,255,255,.55);
+    background:
+    rgba(25,25,35,.55);
 
-    border-left:6px solid hotpink;
+    backdrop-filter:
+    blur(15px);
+
+    border-left:
+    6px solid #ff2e79;
 
     border-radius:18px;
 
     margin:30px 0;
 
+    color:white;
+
+    box-shadow:
+    0 0 25px rgba(255,46,121,.15);
+
+}
+
+
+.quote-box h3{
+
+    color:#ff6fa3;
+
+}
+
+
+.quote-box p{
+
+    color:#eeeeee;
+
     font-style:italic;
 
 }
 
-/* ===========================================
-   Surprise Card
-=========================================== */
 
-.surprise-card{
 
-    background:white;
-
-    padding:35px;
-
-    border-radius:25px;
-
-    text-align:center;
-
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-
-}
-
-.surprise-card h1{
-
-    color:#ff2e79;
-
-}
-
-.surprise-card p{
-
-    font-size:18px;
-
-    line-height:1.8;
-
-}
-
-/* ===========================================
-   Ending
-=========================================== */
 /* ===========================================
    Digital Envelope
 =========================================== */
+
 
 .envelope{
 
@@ -245,27 +342,107 @@ h1,h2,h3{
 
     animation:float 3s ease-in-out infinite;
 
-    filter:drop-shadow(0 0 15px rgba(255,105,180,.4));
+    filter:
+    drop-shadow(0 0 20px rgba(255,105,180,.7));
 
 }
+
+
 
 @keyframes float{
 
-0%{
-transform:translateY(0px);
+
+    0%{
+
+        transform:translateY(0px);
+
+    }
+
+
+    50%{
+
+        transform:translateY(-15px);
+
+    }
+
+
+    100%{
+
+        transform:translateY(0px);
+
+    }
+
 }
 
-50%{
-transform:translateY(-12px);
+
+
+/* ===========================================
+   Surprise Card
+=========================================== */
+
+
+.surprise-card{
+
+
+    background:
+    rgba(18,18,30,.75);
+
+
+    padding:35px;
+
+
+    border-radius:25px;
+
+
+    text-align:center;
+
+
+    border:
+    1px solid rgba(255,255,255,.1);
+
+
+    box-shadow:
+
+    0 0 35px rgba(255,46,121,.25);
+
+
 }
 
-100%{
-transform:translateY(0px);
-}
+
+
+.surprise-card h1{
+
+
+    color:#ff2e79;
+
+    text-shadow:
+
+    0 0 15px rgba(255,46,121,.8);
 
 }
+
+
+
+.surprise-card p{
+
+
+    color:white;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}
+
+
+
+/* ===========================================
+   Ending Section
+=========================================== */
+
 
 .ending{
+
 
     text-align:center;
 
@@ -273,49 +450,105 @@ transform:translateY(0px);
 
 }
 
+
+
 .ending h2{
+
 
     color:#ff2e79;
 
 }
 
+
+
 .ending p{
 
-    color:#555;
+
+    color:#dddddd;
 
     font-size:18px;
 
 }
 
+
+
 /* ===========================================
    Metric Cards
 =========================================== */
 
+
 [data-testid="metric-container"]{
 
-    background:white;
+
+    background:
+
+    rgba(20,20,30,.6);
+
 
     border-radius:18px;
 
+
     padding:20px;
 
-    box-shadow:0 6px 18px rgba(0,0,0,.08);
+
+    border:
+
+    1px solid rgba(255,255,255,.08);
+
+
+    box-shadow:
+
+    0 0 20px rgba(255,46,121,.15);
+
 
 }
 
+
+
+[data-testid="metric-container"] label{
+
+
+    color:#ff8ac2;
+
+}
+
+
+
+[data-testid="metric-container"] div{
+
+
+    color:white;
+
+}
+
+
+
 /* ===========================================
-   Success Boxes
+   Success Messages
 =========================================== */
+
 
 [data-testid="stAlert"]{
 
+
+    background:
+
+    rgba(255,46,121,.15);
+
+
     border-radius:15px;
+
+
+    color:white;
 
 }
 
+
+
 /* ===========================================
-   Footer
+   Footer + Streamlit UI Cleanup
 =========================================== */
+
 
 footer{
 
@@ -323,8 +556,44 @@ footer{
 
 }
 
+
 header{
 
     visibility:hidden;
+
+}
+
+
+
+/* ===========================================
+   Mobile Adjustments
+=========================================== */
+
+
+@media(max-width:768px){
+
+
+    .hero h1{
+
+        font-size:40px;
+
+    }
+
+
+    p{
+
+        font-size:16px;
+
+    }
+
+
+    .pulse-heart{
+
+        font-size:70px;
+
+    }
+
+
+}
 
 }
