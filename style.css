@@ -597,3 +597,80 @@ header{
 }
 
 }
+/* ==============================
+   Animated Envelope
+============================== */
+
+.love-envelope{
+
+    font-size:130px;
+
+    text-align:center;
+
+    animation: envelopeFloat 3s infinite ease-in-out;
+
+    filter:drop-shadow(0 0 25px #ff2e79);
+
+}
+
+
+@keyframes envelopeFloat{
+
+    0%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-20px);
+    }
+
+    100%{
+        transform:translateY(0);
+    }
+
+}
+
+
+
+/* ==============================
+   Proposal Section
+============================== */
+
+
+.proposal{
+
+    text-align:center;
+
+    padding:40px;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(15px);
+
+    border-radius:25px;
+
+    border:1px solid rgba(255,255,255,.15);
+
+    box-shadow:
+    0 0 40px rgba(255,46,121,.3);
+
+}
+
+
+.proposal h1{
+
+    color:#ff4d94;
+
+    text-shadow:
+    0 0 20px #ff2e79;
+
+}
+
+
+.proposal p{
+
+    color:white;
+
+    font-size:18px;
+
+}
