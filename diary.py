@@ -217,58 +217,59 @@ Because every day brings us one step closer.
 """)
 
 st.markdown("---")
-
 # -----------------------------
 # Digital Envelope
 # -----------------------------
+
 st.header("💌 One Last Surprise")
 
 if "opened" not in st.session_state:
     st.session_state.opened = False
 
+
 st.markdown("""
-<div class="envelope">
+<div class="love-envelope">
     💌
 </div>
 """, unsafe_allow_html=True)
 
-if st.button("Open the Envelope ❤️"):
+
+if st.button("Open My Letter ❤️"):
 
     st.session_state.opened = True
 
+
 if st.session_state.opened:
 
-    st.snow()
-    st.balloons()
-
     st.markdown("""
-<div class="surprise-card">
+    <div class="surprise-card">
 
-<h1>❤️ Dear Mary ❤️</h1>
+    <h1>❤️ Dear Mary ❤️</h1>
 
-<p>
+    <p>
 
-If you've reached this part of the website,
+    If you reached this part,
+    I want you to know something.
 
-thank you for reading everything.
+    Creating this website was my little way
+    of showing you how much I appreciate you.
 
-I just wanted you to know that meeting you
-has genuinely made my days brighter.
+    Thank you for every conversation,
+    every laugh,
+    and every moment we share.
 
-No matter how many miles separate us,
+    Distance may separate us,
+    but you still manage to make my days brighter.
 
-I'll always appreciate the person you are.
+    ❤️
 
-I hope this is only the beginning
-of an amazing story.
+    </p>
 
-❤️
+    </div>
+    """, unsafe_allow_html=True)
 
-</p>
-
-</div>
-""", unsafe_allow_html=True)
-
+    st.balloons()
+    
     st.success("💖 You make my world a little brighter every day.")
 
 # -----------------------------
