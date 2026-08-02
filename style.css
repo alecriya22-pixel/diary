@@ -229,6 +229,41 @@ h1,h2,h3{
 /* ===========================================
    Ending
 =========================================== */
+/* ===========================================
+   Digital Envelope
+=========================================== */
+
+.envelope{
+
+    font-size:120px;
+
+    text-align:center;
+
+    margin:25px auto;
+
+    cursor:pointer;
+
+    animation:float 3s ease-in-out infinite;
+
+    filter:drop-shadow(0 0 15px rgba(255,105,180,.4));
+
+}
+
+@keyframes float{
+
+0%{
+transform:translateY(0px);
+}
+
+50%{
+transform:translateY(-12px);
+}
+
+100%{
+transform:translateY(0px);
+}
+
+}
 
 .ending{
 
