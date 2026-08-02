@@ -1,0 +1,295 @@
+/* ===========================================
+   Google Font
+=========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+/* ===========================================
+   Background
+=========================================== */
+
+html, body, [data-testid="stAppViewContainer"]{
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(
+        -45deg,
+        #fff0f6,
+        #ffe4ec,
+        #ffeaf4,
+        #fff8fb
+    );
+    background-size: 400% 400%;
+    animation: gradientMove 15s ease infinite;
+}
+
+@keyframes gradientMove{
+
+    0%{
+        background-position:0% 50%;
+    }
+
+    50%{
+        background-position:100% 50%;
+    }
+
+    100%{
+        background-position:0% 50%;
+    }
+
+}
+
+/* ===========================================
+   Hero
+=========================================== */
+
+.hero{
+
+    text-align:center;
+
+    padding:60px 30px;
+
+    margin-bottom:30px;
+
+}
+
+.hero h1{
+
+    color:#ff2e79;
+
+    font-size:60px;
+
+    margin-bottom:15px;
+
+}
+
+.hero h3{
+
+    color:#555;
+
+    font-weight:500;
+
+}
+
+.hero p{
+
+    max-width:800px;
+
+    margin:auto;
+
+    color:#666;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}
+
+/* ===========================================
+   Pulsing Heart
+=========================================== */
+
+.pulse-heart{
+
+    font-size:65px;
+
+    margin-top:30px;
+
+    animation:pulse 1.5s infinite;
+
+}
+
+@keyframes pulse{
+
+0%{
+transform:scale(1);
+}
+
+50%{
+transform:scale(1.25);
+}
+
+100%{
+transform:scale(1);
+}
+
+}
+
+/* ===========================================
+   Glass Cards
+=========================================== */
+
+div[data-testid="stVerticalBlock"]{
+
+    background:rgba(255,255,255,.60);
+
+    backdrop-filter:blur(15px);
+
+    border-radius:20px;
+
+    padding:25px;
+
+    margin-bottom:25px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+}
+
+/* ===========================================
+   Headers
+=========================================== */
+
+h1,h2,h3{
+
+    color:#d63384;
+
+}
+
+/* ===========================================
+   Streamlit Buttons
+=========================================== */
+
+.stButton>button{
+
+    background:#ff4d94;
+
+    color:white;
+
+    border:none;
+
+    border-radius:30px;
+
+    padding:12px 30px;
+
+    font-size:18px;
+
+    transition:.3s;
+
+}
+
+.stButton>button:hover{
+
+    background:#ff2e79;
+
+    transform:scale(1.05);
+
+}
+
+/* ===========================================
+   Quote Card
+=========================================== */
+
+.quote-box{
+
+    text-align:center;
+
+    padding:25px;
+
+    background:rgba(255,255,255,.55);
+
+    border-left:6px solid hotpink;
+
+    border-radius:18px;
+
+    margin:30px 0;
+
+    font-style:italic;
+
+}
+
+/* ===========================================
+   Surprise Card
+=========================================== */
+
+.surprise-card{
+
+    background:white;
+
+    padding:35px;
+
+    border-radius:25px;
+
+    text-align:center;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+.surprise-card h1{
+
+    color:#ff2e79;
+
+}
+
+.surprise-card p{
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}
+
+/* ===========================================
+   Ending
+=========================================== */
+
+.ending{
+
+    text-align:center;
+
+    padding:40px;
+
+}
+
+.ending h2{
+
+    color:#ff2e79;
+
+}
+
+.ending p{
+
+    color:#555;
+
+    font-size:18px;
+
+}
+
+/* ===========================================
+   Metric Cards
+=========================================== */
+
+[data-testid="metric-container"]{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:20px;
+
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+
+}
+
+/* ===========================================
+   Success Boxes
+=========================================== */
+
+[data-testid="stAlert"]{
+
+    border-radius:15px;
+
+}
+
+/* ===========================================
+   Footer
+=========================================== */
+
+footer{
+
+    visibility:hidden;
+
+}
+
+header{
+
+    visibility:hidden;
+
+}
