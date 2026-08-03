@@ -27,6 +27,7 @@ st.info("💖 Welcome Mary. This little corner of the internet was made just for
 # -----------------------------
 # Hero Section
 # -----------------------------
+st.snow() 
 st.markdown("""
 <div class="hero">
 
@@ -269,7 +270,7 @@ if st.session_state.opened:
     """, unsafe_allow_html=True)
 
     st.balloons()
-    
+    st.snow()
     st.success("💖 You make my world a little brighter every day.")
 
 # -----------------------------
